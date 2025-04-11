@@ -357,6 +357,12 @@
                 <h3>Кастомное время (минуты)</h3>
                 <input type="number" class="settings-input" id="customTimeInput" min="1" max="60">
             </div>
+            <div class="settings-group">
+                <label style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="soundEnabledCheckbox" checked>
+                    Включить звуки
+                </label>
+            </div>
             <button class="settings-btn" id="advancedSettingsBtn">Расширенные настройки</button>
             <button class="settings-btn" id="saveSettingsBtn">Сохранить</button>
             <button class="settings-btn" id="backBtn">Назад</button>
@@ -401,10 +407,10 @@
     <script>
         // Sound file paths
         const SOUND_PATHS = {
-            START: 'sounds/startsignal.wav',
-            STOP_POINT: 'sounds/stoppoint.wav',
-            END_SHORT: 'sounds/endshortsignal.wav',
-            END: 'sounds/endsignal.wav'
+            START: 'sounds/gong.wav',
+            STOP_POINT: 'sounds/gong.wav',
+            END_SHORT: 'sounds/short.wav',
+            END: 'sounds/gong.wav'
         };
 
         // Audio elements
@@ -442,6 +448,7 @@
         const noGadgetTimeInput = document.getElementById('noGadgetTimeInput');
         const saveAdvancedSettingsBtn = document.getElementById('saveAdvancedSettingsBtn');
         const backAdvancedBtn = document.getElementById('backAdvancedBtn');
+        const soundEnabledCheckbox = document.getElementById('soundEnabledCheckbox');
 
         // State variables
         let currentTime = 0;
@@ -460,7 +467,8 @@
             speechTime: 4,
             conclusionTime: 2,
             prepTime: 10,
-            noGadgetTime: 3
+            noGadgetTime: 3,
+            soundEnabled: true
         };
 
         // Initialize from localStorage
@@ -512,10 +520,13 @@
         // Functions
         function toggleTimer() {
             if (isQuestionMode) {
-                // If in question mode, immediately end it
-                isQuestionMode = false;
+                // If in question mode, skip to the end of question immediately
                 clearInterval(questionInterval);
+                isQuestionMode = false;
                 timer.classList.remove('success');
+                
+                // Restore main timer state without playing sound
+                currentTime = currentTime + 3;
                 updateDisplay();
                 return;
             }
@@ -533,7 +544,7 @@
             if (!isRunning) {
                 isRunning = true;
                 if (!hasStarted) {
-                    startSignal.play();
+                    playSound(startSignal);
                     hasStarted = true;
                 }
                 timerInterval = setInterval(updateTimer, 1000);
@@ -562,7 +573,7 @@
                 
                 if (currentTime <= 10 && !isQuestionMode) {
                     timer.classList.add('warning');
-                    endShortSignal.play();
+                    playSound(endShortSignal);
                 }
                 
                 if (currentTime === 0) {
@@ -572,6 +583,10 @@
         }
 
         function updateDisplay() {
+            if (isQuestionMode) {
+                return; // Don't update display during question mode
+            }
+
             const minutes = Math.floor(currentTime / 60);
             const seconds = currentTime % 60;
             timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -585,7 +600,7 @@
                     timer.classList.add('protected');
                 }
             } else if (currentMode === 'prep') {
-                if (currentTime <= settings.noGadgetTime * 60) { // Using the configurable no-gadget time
+                if (currentTime <= settings.noGadgetTime * 60) {
                     timer.classList.add('warning');
                 }
             }
@@ -615,7 +630,7 @@
         function endTimer() {
             pauseTimer();
             timer.classList.add('warning');
-            endSignal.play();
+            playSound(endSignal);
         }
 
         function startQuestion() {
@@ -623,39 +638,32 @@
             
             isQuestionMode = true;
             const questionTime = settings.questionTime;
-            
-            // Store the current timer state and time
-            const wasRunning = isRunning;
             const mainTime = currentTime;
-            
-            if (wasRunning) {
-                pauseTimer();
-            }
             
             // Start question countdown immediately
             let questionCountdown = questionTime;
             timer.classList.remove('warning', 'protected');
             timer.classList.add('success');
             
-            // Display the question countdown
-            timer.textContent = `00:${questionCountdown.toString().padStart(2, '0')}`;
+            function updateQuestionDisplay() {
+                timer.textContent = `00:${questionCountdown.toString().padStart(2, '0')}`;
+            }
+            
+            updateQuestionDisplay();
             
             questionInterval = setInterval(() => {
                 if (questionCountdown > 0) {
                     questionCountdown--;
-                    timer.textContent = `00:${questionCountdown.toString().padStart(2, '0')}`;
+                    updateQuestionDisplay();
                 } else {
                     clearInterval(questionInterval);
                     isQuestionMode = false;
                     timer.classList.remove('success');
-                    stopPoint.play();
+                    playSound(stopPoint);
                     
-                    // Add 3 seconds to the main timer and restore state
+                    // Add 3 seconds to the main timer
                     currentTime = mainTime + 3;
                     updateDisplay();
-                    if (wasRunning) {
-                        startTimer();
-                    }
                 }
             }, 1000);
         }
@@ -691,10 +699,12 @@
             protectedTimeInput.value = settings.protectedTime;
             protectedTimeCheckbox.checked = settings.useProtectedTime;
             questionTimeInput.value = settings.questionTime;
+            soundEnabledCheckbox.checked = settings.soundEnabled;
         }
 
         function saveSettings() {
             settings.customTime = parseInt(customTimeInput.value) || 5;
+            settings.soundEnabled = soundEnabledCheckbox.checked;
             
             const newTopic = settingsTopicInput.value.trim();
             if (newTopic) {
@@ -727,6 +737,13 @@
             // Update timer if we're in a relevant mode
             if (currentMode !== 'custom') {
                 setMode(currentMode);
+            }
+        }
+
+        // Function to play sound if enabled
+        function playSound(sound) {
+            if (settings.soundEnabled) {
+                sound.play();
             }
         }
 
