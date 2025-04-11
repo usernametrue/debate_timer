@@ -193,6 +193,11 @@
             background-color: rgba(0, 0, 0, 0.5);
             align-items: center;
             justify-content: center;
+            z-index: 1000;
+        }
+
+        #advancedSettingsModal {
+            z-index: 1001;
         }
 
         .settings-content {
@@ -352,6 +357,26 @@
                 <h3>Кастомное время (минуты)</h3>
                 <input type="number" class="settings-input" id="customTimeInput" min="1" max="60">
             </div>
+            <button class="settings-btn" id="advancedSettingsBtn">Расширенные настройки</button>
+            <button class="settings-btn" id="saveSettingsBtn">Сохранить</button>
+            <button class="settings-btn" id="backBtn">Назад</button>
+        </div>
+    </div>
+
+    <div class="settings-modal" id="advancedSettingsModal">
+        <div class="settings-content">
+            <div class="settings-group">
+                <h3>Время речи (минуты)</h3>
+                <input type="number" class="settings-input" id="speechTimeInput" min="1" max="60">
+            </div>
+            <div class="settings-group">
+                <h3>Время заключения (минуты)</h3>
+                <input type="number" class="settings-input" id="conclusionTimeInput" min="1" max="60">
+            </div>
+            <div class="settings-group">
+                <h3>Время подготовки (минуты)</h3>
+                <input type="number" class="settings-input" id="prepTimeInput" min="1" max="60">
+            </div>
             <div class="settings-group">
                 <h3>Защитное время (секунды)</h3>
                 <input type="number" class="settings-input" id="protectedTimeInput" min="0" max="60">
@@ -364,8 +389,8 @@
                 <h3>Время вопроса (секунды)</h3>
                 <input type="number" class="settings-input" id="questionTimeInput" min="1" max="30">
             </div>
-            <button class="settings-btn" id="saveSettingsBtn">Сохранить</button>
-            <button class="settings-btn" id="backBtn">Назад</button>
+            <button class="settings-btn" id="saveAdvancedSettingsBtn">Сохранить</button>
+            <button class="settings-btn" id="backAdvancedBtn">Назад</button>
         </div>
     </div>
 
@@ -405,6 +430,13 @@
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const backBtn = document.getElementById('backBtn');
         const customBtn = document.getElementById('customBtn');
+        const advancedSettingsBtn = document.getElementById('advancedSettingsBtn');
+        const advancedSettingsModal = document.getElementById('advancedSettingsModal');
+        const speechTimeInput = document.getElementById('speechTimeInput');
+        const conclusionTimeInput = document.getElementById('conclusionTimeInput');
+        const prepTimeInput = document.getElementById('prepTimeInput');
+        const saveAdvancedSettingsBtn = document.getElementById('saveAdvancedSettingsBtn');
+        const backAdvancedBtn = document.getElementById('backAdvancedBtn');
 
         // State variables
         let currentTime = 0;
@@ -419,7 +451,10 @@
             customTime: 4,
             protectedTime: 30,
             useProtectedTime: true,
-            questionTime: 10
+            questionTime: 10,
+            speechTime: 4,
+            conclusionTime: 2,
+            prepTime: 10
         };
 
         // Initialize from localStorage
@@ -458,6 +493,15 @@
         settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex');
         saveSettingsBtn.addEventListener('click', saveSettings);
         backBtn.addEventListener('click', () => settingsModal.style.display = 'none');
+        advancedSettingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'none';
+            advancedSettingsModal.style.display = 'flex';
+        });
+        backAdvancedBtn.addEventListener('click', () => {
+            advancedSettingsModal.style.display = 'none';
+            settingsModal.style.display = 'flex';
+        });
+        saveAdvancedSettingsBtn.addEventListener('click', saveAdvancedSettings);
 
         // Functions
         function toggleTimer() {
@@ -614,13 +658,13 @@
             currentMode = mode;
             switch (mode) {
                 case 'speech':
-                    totalTime = 4 * 60;
+                    totalTime = settings.speechTime * 60;
                     break;
                 case 'conclusion':
-                    totalTime = 2 * 60;
+                    totalTime = settings.conclusionTime * 60;
                     break;
                 case 'prep':
-                    totalTime = 10 * 60;
+                    totalTime = settings.prepTime * 60;
                     break;
                 case 'custom':
                     totalTime = settings.customTime * 60;
@@ -634,6 +678,9 @@
         function updateSettingsInputs() {
             settingsTopicInput.value = topicDisplay.textContent;
             customTimeInput.value = settings.customTime;
+            speechTimeInput.value = settings.speechTime;
+            conclusionTimeInput.value = settings.conclusionTime;
+            prepTimeInput.value = settings.prepTime;
             protectedTimeInput.value = settings.protectedTime;
             protectedTimeCheckbox.checked = settings.useProtectedTime;
             questionTimeInput.value = settings.questionTime;
@@ -641,9 +688,6 @@
 
         function saveSettings() {
             settings.customTime = parseInt(customTimeInput.value) || 5;
-            settings.protectedTime = parseInt(protectedTimeInput.value) || 30;
-            settings.useProtectedTime = protectedTimeCheckbox.checked;
-            settings.questionTime = parseInt(questionTimeInput.value) || 10;
             
             const newTopic = settingsTopicInput.value.trim();
             if (newTopic) {
@@ -653,6 +697,29 @@
             
             localStorage.setItem('timerSettings', JSON.stringify(settings));
             settingsModal.style.display = 'none';
+            
+            // Update timer if we're in custom mode
+            if (currentMode === 'custom') {
+                setMode('custom');
+            }
+        }
+
+        function saveAdvancedSettings() {
+            settings.speechTime = parseInt(speechTimeInput.value) || 4;
+            settings.conclusionTime = parseInt(conclusionTimeInput.value) || 2;
+            settings.prepTime = parseInt(prepTimeInput.value) || 10;
+            settings.protectedTime = parseInt(protectedTimeInput.value) || 30;
+            settings.useProtectedTime = protectedTimeCheckbox.checked;
+            settings.questionTime = parseInt(questionTimeInput.value) || 10;
+            
+            localStorage.setItem('timerSettings', JSON.stringify(settings));
+            advancedSettingsModal.style.display = 'none';
+            settingsModal.style.display = 'flex';
+            
+            // Update timer if we're in a relevant mode
+            if (currentMode !== 'custom') {
+                setMode(currentMode);
+            }
         }
 
         // Add styles for active button state
