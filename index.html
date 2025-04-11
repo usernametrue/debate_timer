@@ -49,8 +49,16 @@
         .logos {
             display: flex;
             justify-content: center;
+            align-items: center;
+            width: 100%;
             gap: 8vw;
+            margin-top: 2vh;
         }
+
+        .logos #cap {
+            font-size: 50px;
+        }
+
         .logostudent {
             font-size: 50px;
             font-weight: 800;
@@ -60,16 +68,12 @@
             align-items: center;
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
-            .logostudent::before {
-            content: "🎓";
-            font-size: 50px;
-        }
-            .logostudent span {
+
+        .logostudent span {
             color: #f72585;
         }
 
         .logo {
-            width: 250px;
             height: 250px;
             background-size: contain;
             background-repeat: no-repeat;
@@ -82,7 +86,7 @@
 
         .logo.students {
             background-image: url('./students.png');
-        }*
+        }
 
         .topic-input {
             width: 100%;
@@ -241,7 +245,6 @@
 
         @media (max-height: 900px) {
             .logo {
-                width: 300px;
                 height: 100px;
             }
 
@@ -252,7 +255,6 @@
 
         @media (max-height: 700px) {
             .logo {
-                width: 150px;
                 height: 150px;
             }
 
@@ -269,7 +271,6 @@
 
         @media (max-width: 768px) {
             .logo {
-                width: 120px;
                 height: 120px;
             }
 
@@ -286,7 +287,6 @@
 
         @media (max-width: 480px) {
             .logo {
-                width: 100px;
                 height: 100px;
             }
 
@@ -305,7 +305,6 @@
             }
 
             .btn {
-                width: 50px;
                 height: 50px;
                 font-size: 20px;
             }
@@ -322,7 +321,7 @@
 <!--            <a href="https://t.me/uweddc_official" target="_blank">
                 <div class="logo uwed"></div> -->
             </a>
-            <a href="https://students.uz" target="_blank" class="logo logostudent">Students<span>.uz</span></a>
+            <a href="https://students.uz" target="_blank" class="logo logostudent"><span id="cap">🎓</span>Students<span>.uz</span></a>
         </div>
 
         <input type="text" class="topic-input" placeholder="Введите тему дебатов" id="topicInput">
