@@ -378,6 +378,10 @@
                 <input type="number" class="settings-input" id="prepTimeInput" min="1" max="60">
             </div>
             <div class="settings-group">
+                <h3>Время без гаджетов в подготовке (минуты)</h3>
+                <input type="number" class="settings-input" id="noGadgetTimeInput" min="1" max="60">
+            </div>
+            <div class="settings-group">
                 <h3>Защитное время (секунды)</h3>
                 <input type="number" class="settings-input" id="protectedTimeInput" min="0" max="60">
                 <label>
@@ -435,6 +439,7 @@
         const speechTimeInput = document.getElementById('speechTimeInput');
         const conclusionTimeInput = document.getElementById('conclusionTimeInput');
         const prepTimeInput = document.getElementById('prepTimeInput');
+        const noGadgetTimeInput = document.getElementById('noGadgetTimeInput');
         const saveAdvancedSettingsBtn = document.getElementById('saveAdvancedSettingsBtn');
         const backAdvancedBtn = document.getElementById('backAdvancedBtn');
 
@@ -454,7 +459,8 @@
             questionTime: 10,
             speechTime: 4,
             conclusionTime: 2,
-            prepTime: 10
+            prepTime: 10,
+            noGadgetTime: 3
         };
 
         // Initialize from localStorage
@@ -579,7 +585,7 @@
                     timer.classList.add('protected');
                 }
             } else if (currentMode === 'prep') {
-                if (currentTime <= 180) { // Last 3 minutes
+                if (currentTime <= settings.noGadgetTime * 60) { // Using the configurable no-gadget time
                     timer.classList.add('warning');
                 }
             }
@@ -681,6 +687,7 @@
             speechTimeInput.value = settings.speechTime;
             conclusionTimeInput.value = settings.conclusionTime;
             prepTimeInput.value = settings.prepTime;
+            noGadgetTimeInput.value = settings.noGadgetTime;
             protectedTimeInput.value = settings.protectedTime;
             protectedTimeCheckbox.checked = settings.useProtectedTime;
             questionTimeInput.value = settings.questionTime;
@@ -708,6 +715,7 @@
             settings.speechTime = parseInt(speechTimeInput.value) || 4;
             settings.conclusionTime = parseInt(conclusionTimeInput.value) || 2;
             settings.prepTime = parseInt(prepTimeInput.value) || 10;
+            settings.noGadgetTime = parseInt(noGadgetTimeInput.value) || 3;
             settings.protectedTime = parseInt(protectedTimeInput.value) || 30;
             settings.useProtectedTime = protectedTimeCheckbox.checked;
             settings.questionTime = parseInt(questionTimeInput.value) || 10;
